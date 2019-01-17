@@ -10,6 +10,36 @@ import (
 	"github.com/jvikstedt/bluestorm/network/json"
 )
 
+type Greet struct {
+	Name string `json:"name"`
+}
+
+func test(agent *network.Agent, i interface{}) {
+	greet, ok := i.(*Greet)
+	if !ok {
+		log.Println("not right type")
+	}
+
+	r, err := agent.GetValue("room")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	room, ok := r.(*hub.Room)
+	if !ok {
+		log.Println("not okay...")
+		return
+	}
+
+	log.Printf("room %v:\n", room)
+	log.Printf("user %s greets %s\n", agent.ID(), greet.Name)
+
+	if err := agent.WriteMsg(&Greet{Name: "Alice"}); err != nil {
+		log.Println(err)
+	}
+}
+
 func onConnect(agent *network.Agent) {
 	log.Printf("Agent connectedted %s\n", agent.ID())
 	defaultRoom, _ := hub.DefaultManager().GetRoom(hub.DefaultRoomID)
@@ -31,22 +61,12 @@ func onDisconnect(agent *network.Agent) {
 	if err != nil {
 		log.Println(err)
 	}
-
-	r, err := agent.GetValue("room")
-	if err != nil {
-		log.Println(err)
-	}
-	room, ok := r.(*hub.Room)
-	if !ok {
-		log.Println("not okay...")
-	}
-	log.Printf("Was in room %s\n", room.ID())
 	log.Printf("room has users: %v\n", defaultRoom.GetUsers())
 }
 
 func main() {
 	processor := json.NewProcessor()
-	// processor.Register(&Greet{}, test)
+	processor.Register(&Greet{}, test)
 
 	servers := bluestorm.Servers{
 		&network.WSServer{
