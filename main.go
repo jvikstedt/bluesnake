@@ -43,7 +43,7 @@ func test(agent *network.Agent, i interface{}) {
 func onConnect(agent *network.Agent) {
 	log.Printf("Agent connectedted %s\n", agent.ID())
 	defaultRoom, _ := hub.DefaultManager().GetRoom(hub.DefaultRoomID)
-	err := hub.DefaultManager().UserToRoom(hub.UserID(agent.ID()), hub.DefaultRoomID)
+	err := hub.DefaultManager().UserToRoom(hub.UserID(agent.ID()), hub.DefaultRoomID, agent)
 	if err != nil {
 		log.Println(err)
 		agent.Conn().Close()
