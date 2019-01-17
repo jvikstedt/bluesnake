@@ -9,7 +9,7 @@
     var socket = new WebSocket("ws://localhost:8081");
 
     socket.onopen = function (event) {
-      socket.send(JSON.stringify({ Greet: { name: 'Bob' } }));
+      socket.send(JSON.stringify({ Msg: { name: 'Hello' } }));
     };
 
     socket.onmessage = function (event) {

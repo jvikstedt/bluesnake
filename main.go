@@ -10,14 +10,15 @@ import (
 	"github.com/jvikstedt/bluestorm/network/json"
 )
 
-type Greet struct {
-	Name string `json:"name"`
+type Msg struct {
+	Message string `json:"name"`
 }
 
-func test(agent *network.Agent, i interface{}) {
-	greet, ok := i.(*Greet)
+func proxy(agent *network.Agent, i interface{}) {
+	msg, ok := i.(*Msg)
 	if !ok {
 		log.Println("not right type")
+		return
 	}
 
 	r, err := agent.GetValue("room")
@@ -32,12 +33,7 @@ func test(agent *network.Agent, i interface{}) {
 		return
 	}
 
-	log.Printf("room %v:\n", room)
-	log.Printf("user %s greets %s\n", agent.ID(), greet.Name)
-
-	if err := agent.WriteMsg(&Greet{Name: "Alice"}); err != nil {
-		log.Println(err)
-	}
+	room.BroadcastExceptOne(hub.UserID(agent.ID()), msg)
 }
 
 func onConnect(agent *network.Agent) {
@@ -50,7 +46,6 @@ func onConnect(agent *network.Agent) {
 		return
 	}
 	agent.SetValue("room", defaultRoom)
-
 	log.Printf("room has users: %v\n", defaultRoom.GetUsers())
 }
 
@@ -66,7 +61,7 @@ func onDisconnect(agent *network.Agent) {
 
 func main() {
 	processor := json.NewProcessor()
-	processor.Register(&Greet{}, test)
+	processor.Register(&Msg{}, proxy)
 
 	servers := bluestorm.Servers{
 		&network.WSServer{
