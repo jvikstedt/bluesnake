@@ -15,39 +15,38 @@ type Msg struct {
 }
 
 func proxy(agent *network.Agent, i interface{}) {
-	msg, ok := i.(*Msg)
-	if !ok {
-		log.Println("not right type")
-		return
-	}
-
 	r, err := agent.GetValue("room")
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	room, ok := r.(*hub.Room)
+	room, ok := r.(hub.Room)
 	if !ok {
-		log.Println("not okay...")
+		log.Println("Could not convert to room...")
 		return
 	}
 
-	room.BroadcastExceptOne(hub.UserID(agent.ID()), msg)
+	room.NewMsg(agent, i)
 }
 
 func main() {
 	processor := json.NewProcessor()
 	processor.Register(&Msg{}, proxy)
 
+	lobby := NewLobby()
+	hub.DefaultManager().AddRoom(lobby)
+
 	servers := bluestorm.Servers{
 		&network.WSServer{
 			Addr:         ":8081",
 			Processor:    processor,
-			OnConnect:    bluestorm.OnConnectHelper(hub.DefaultManager(), hub.DefaultRoomID),
+			OnConnect:    bluestorm.OnConnectHelper(hub.DefaultManager(), lobby.ID()),
 			OnDisconnect: bluestorm.OnDisconnectHelper(hub.DefaultManager()),
 		},
 	}
+
+	go lobby.Run()
 
 	bluestorm.Run(bluestorm.CloseOnSignal(os.Interrupt), servers)
 }
