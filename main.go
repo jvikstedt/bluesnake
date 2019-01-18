@@ -36,29 +36,6 @@ func proxy(agent *network.Agent, i interface{}) {
 	room.BroadcastExceptOne(hub.UserID(agent.ID()), msg)
 }
 
-func onConnect(agent *network.Agent) {
-	log.Printf("Agent connectedted %s\n", agent.ID())
-	defaultRoom, _ := hub.DefaultManager().GetRoom(hub.DefaultRoomID)
-	err := hub.DefaultManager().UserToRoom(hub.UserID(agent.ID()), hub.DefaultRoomID, agent)
-	if err != nil {
-		log.Println(err)
-		agent.Conn().Close()
-		return
-	}
-	agent.SetValue("room", defaultRoom)
-	log.Printf("room has users: %v\n", defaultRoom.GetUsers())
-}
-
-func onDisconnect(agent *network.Agent) {
-	log.Printf("Agent disconnected %s\n", agent.ID())
-	defaultRoom, _ := hub.DefaultManager().GetRoom(hub.DefaultRoomID)
-	err := hub.DefaultManager().RemoveUser(hub.UserID(agent.ID()))
-	if err != nil {
-		log.Println(err)
-	}
-	log.Printf("room has users: %v\n", defaultRoom.GetUsers())
-}
-
 func main() {
 	processor := json.NewProcessor()
 	processor.Register(&Msg{}, proxy)
@@ -67,8 +44,8 @@ func main() {
 		&network.WSServer{
 			Addr:         ":8081",
 			Processor:    processor,
-			OnConnect:    onConnect,
-			OnDisconnect: onDisconnect,
+			OnConnect:    bluestorm.OnConnectHelper(hub.DefaultManager(), hub.DefaultRoomID),
+			OnDisconnect: bluestorm.OnDisconnectHelper(hub.DefaultManager()),
 		},
 	}
 
