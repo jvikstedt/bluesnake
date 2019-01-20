@@ -7,6 +7,9 @@ import (
 	"github.com/jvikstedt/bluestorm/hub"
 )
 
+const MaxHeight = 100
+const MaxWidth = 100
+
 type Game struct {
 	*hub.BaseRoom
 
@@ -88,18 +91,28 @@ func (g *Game) updatePlayerDir(player *Player) {
 }
 
 func (g *Game) updatePlayerPos(player *Player) {
+	newX := player.x
+	newY := player.y
+
 	switch player.dir {
 	case 0:
-		player.y--
+		newY--
 	case 1:
-		player.x++
+		newX++
 	case 2:
-		player.y++
+		newY++
 	case 3:
-		player.x--
+		newX--
 	default:
 		break
 	}
+
+	if newX > MaxWidth || newX < 0 || newY > MaxHeight || newY < 0 {
+		return
+	}
+
+	player.x = newX
+	player.y = newY
 }
 
 func (g *Game) AddMsg(msg *Msg) {
