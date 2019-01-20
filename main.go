@@ -10,20 +10,6 @@ import (
 	"github.com/jvikstedt/bluestorm/network/json"
 )
 
-type Player struct {
-	*hub.BaseUser
-
-	agent *network.Agent
-}
-
-func (p *Player) WriteMsg(i interface{}) error {
-	return p.agent.WriteMsg(i)
-}
-
-type Msg struct {
-	Message string `json:"name"`
-}
-
 const LobbyID = "lobby"
 
 func proxy(agent *network.Agent, i interface{}) {
@@ -41,13 +27,22 @@ func proxy(agent *network.Agent, i interface{}) {
 
 	room := player.GetRoom()
 
-	lobby, ok := room.(*Lobby)
+	receiver, ok := room.(Receiver)
 	if !ok {
-		log.Println("Could not convert to lobby...")
+		log.Printf("Could not convert to cmd receiver... %v\n", room)
 		return
 	}
 
-	lobby.NewMsg(player, i)
+	command, ok := i.(Command)
+	if !ok {
+		log.Printf("Could not convert to command...%v\n", i)
+		return
+	}
+
+	receiver.AddMsg(&Msg{
+		Player:  player,
+		Command: command,
+	})
 }
 
 func onConnect(agent *network.Agent) {
@@ -71,7 +66,7 @@ func onDisconnect(agent *network.Agent) {
 
 func main() {
 	processor := json.NewProcessor()
-	processor.Register(&Msg{}, proxy)
+	processor.Register(&MsgPing{}, proxy)
 
 	lobby := NewLobby(LobbyID)
 	hub.DefaultManager().AddRoom(lobby)

@@ -9,7 +9,7 @@
     var socket = new WebSocket("ws://localhost:8081");
 
     socket.onopen = function (event) {
-      socket.send(JSON.stringify({ Msg: { name: 'Hello' } }));
+      socket.send(JSON.stringify({ MsgPing: {} }));
     };
 
     socket.onmessage = function (event) {
