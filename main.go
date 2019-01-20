@@ -10,7 +10,7 @@ import (
 	"github.com/jvikstedt/bluestorm/network/json"
 )
 
-const LobbyID = "lobby"
+const GameID = "game"
 
 func proxy(agent *network.Agent, i interface{}) {
 	user, err := hub.DefaultManager().GetUser(hub.UserID(agent.ID()))
@@ -40,8 +40,8 @@ func proxy(agent *network.Agent, i interface{}) {
 	}
 
 	receiver.AddMsg(&Msg{
-		Player:  player,
-		Command: command,
+		player: player,
+		cmd:    command,
 	})
 }
 
@@ -51,7 +51,7 @@ func onConnect(agent *network.Agent) {
 		agent:    agent,
 	}
 
-	if err := hub.DefaultManager().AddUser(player, LobbyID); err != nil {
+	if err := hub.DefaultManager().AddUser(player, GameID); err != nil {
 		agent.Conn().Close()
 		return
 	}
@@ -66,10 +66,10 @@ func onDisconnect(agent *network.Agent) {
 
 func main() {
 	processor := json.NewProcessor()
-	processor.Register(&MsgPing{}, proxy)
+	processor.Register(&MsgMove{}, proxy)
 
-	lobby := NewLobby(LobbyID)
-	hub.DefaultManager().AddRoom(lobby)
+	game := NewGame(GameID)
+	hub.DefaultManager().AddRoom(game)
 
 	servers := bluestorm.Servers{
 		&network.WSServer{
@@ -80,7 +80,7 @@ func main() {
 		},
 	}
 
-	go lobby.Run()
+	go game.Run()
 
 	bluestorm.Run(bluestorm.CloseOnSignal(os.Interrupt), servers)
 }

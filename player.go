@@ -8,7 +8,11 @@ import (
 type Player struct {
 	*hub.BaseUser
 
-	agent *network.Agent
+	agent   *network.Agent
+	x       int
+	y       int
+	dir     int
+	nextDir int
 }
 
 func (p *Player) WriteMsg(i interface{}) error {

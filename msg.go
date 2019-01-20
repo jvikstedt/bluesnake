@@ -1,7 +1,7 @@
 package main
 
 type Command interface {
-	Run(receiver Receiver, msg *Msg)
+	Run(receiver Receiver, player *Player)
 }
 
 type Receiver interface {
@@ -9,6 +9,6 @@ type Receiver interface {
 }
 
 type Msg struct {
-	*Player
-	Command
+	player *Player
+	cmd    Command
 }
