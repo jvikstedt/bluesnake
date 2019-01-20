@@ -5,17 +5,16 @@ import (
 	"time"
 
 	"github.com/jvikstedt/bluestorm/hub"
-	"github.com/jvikstedt/bluestorm/network"
 )
 
 type Lobby struct {
 	*hub.BaseRoom
 }
 
-func NewLobby() *Lobby {
-	lobby := &Lobby{}
-	lobby.BaseRoom = hub.NewBaseRoom("lobby")
-	return lobby
+func NewLobby(id hub.RoomID) *Lobby {
+	return &Lobby{
+		BaseRoom: hub.NewBaseRoom(id),
+	}
 }
 
 func (l *Lobby) Run() {
@@ -28,6 +27,6 @@ func (l *Lobby) Run() {
 	}
 }
 
-func (l *Lobby) NewMsg(agent *network.Agent, msg interface{}) {
-	l.Broadcast(msg)
+func (l *Lobby) NewMsg(player *Player, msg interface{}) {
+	l.BroadcastExceptOne(player.ID(), msg)
 }
