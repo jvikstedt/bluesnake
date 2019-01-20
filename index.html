@@ -5,16 +5,70 @@
   <title>Bluesnake</title>
 </head>
 <body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.5.1/pixi.min.js"></script>
   <script type="text/javascript">
     var socket = new WebSocket("ws://localhost:8081");
 
+    const MAX_WIDTH = 20;
+    const MAX_HEIGHT = 20;
+
+    var app = new PIXI.Application(800, 600, {backgroundColor : 0x1099bb});
+    document.body.appendChild(app.view);
+
+    const players = {};
+
     socket.onopen = function (event) {
-      socket.send(JSON.stringify({ MsgMove: { dir: 1 } }));
+      // socket.send(JSON.stringify({ MsgMove: { dir: 1 } }));
     };
 
     socket.onmessage = function (event) {
-      console.log(JSON.parse(event.data));
+      var eventData = JSON.parse(event.data);
+      console.log(eventData);
+
+      if (eventData['MsgMove']) {
+        var msgMove = eventData.MsgMove;
+
+        var player = players[msgMove.id] || {};
+        player.id = msgMove.id;
+        player.x = msgMove.x;
+        player.y =  msgMove.y;
+        player.dir =  msgMove.dir;
+        if (!player.char) {
+          player.char = PIXI.Sprite.fromImage('https://pixijs.io/examples/required/assets/basics/bunny.png');
+          player.char.anchor.set(0);
+          app.stage.addChild(player.char);
+        }
+
+        player.char.x = app.screen.width / MAX_WIDTH * player.x;
+        player.char.y = app.screen.height / MAX_HEIGHT * player.y;
+
+        players[player.id] = player;
+      }
     }
+
+    function downListener(event) {
+      console.log(event.keyCode);
+      switch (event.keyCode) {
+        case 37:
+          socket.send(JSON.stringify({ MsgMove: { dir: 3 } }));
+          break;
+        case 38:
+          socket.send(JSON.stringify({ MsgMove: { dir: 0 } }));
+          break;
+        case 39:
+          socket.send(JSON.stringify({ MsgMove: { dir: 1 } }));
+          break;
+        case 40:
+          socket.send(JSON.stringify({ MsgMove: { dir: 2 } }));
+          break;
+        default:
+          break;
+      }
+    }
+
+    window.addEventListener(
+      "keydown", downListener, false
+    );
   </script>
 </body>
 </html>

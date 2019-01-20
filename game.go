@@ -7,8 +7,8 @@ import (
 	"github.com/jvikstedt/bluestorm/hub"
 )
 
-const MaxHeight = 100
-const MaxWidth = 100
+const MaxHeight = 20
+const MaxWidth = 20
 
 type Game struct {
 	*hub.BaseRoom
@@ -25,7 +25,7 @@ func NewGame(id hub.RoomID) *Game {
 
 func (g *Game) Run() {
 	for {
-		time.Sleep(time.Second * 1)
+		time.Sleep(time.Millisecond * 300)
 
 		users := g.GetUsers()
 

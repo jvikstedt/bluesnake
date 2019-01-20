@@ -13,6 +13,7 @@ import (
 const GameID = "game"
 
 func proxy(agent *network.Agent, i interface{}) {
+	log.Printf("got message %v\n", i)
 	user, err := hub.DefaultManager().GetUser(hub.UserID(agent.ID()))
 	if err != nil {
 		log.Println(err)
